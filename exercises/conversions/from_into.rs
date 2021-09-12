@@ -37,36 +37,17 @@ impl Default for Person {
 
 impl From<&str> for Person {
     fn from(s: &str) -> Person {
-
-        // if s.len() == 0 {
-        //     return Person::default();
-        // }
-        // let p_arr: Vec<&str> = s.split(',').collect();
-        // let name = if p_arr.len() == 2 && p_arr[0] != "" {
-        //     String::from(p_arr[0])
-        // }else{
-        //     return Person::default();
-        // };
-        // let age = match p_arr[1].parse::<usize>() {
-        //     Ok(x) => x,
-        //     Err(_) => return Person::default(),
-        // };
-        // Person{
-        //     name,
-        //     age,
-        // }
-        let parts: Vec<&str> = s.split(',').collect();
-        match parts[..] {
+        let d_array: Vec<&str> = s.split(",").collect();
+        match d_array[..] {
             [name, age] if !name.is_empty() => age
                 .parse()
                 .map(|age| Person{
                     name: name.to_string(),
-                    age,
+                    age: age,
                 })
                 .unwrap_or_default(),
             _ => Person::default(),
         }
-
     }
 }
 
@@ -142,6 +123,20 @@ mod tests {
     #[test]
     fn test_missing_name_and_invalid_age() {
         let p: Person = Person::from(",one");
+        assert_eq!(p.name, "John");
+        assert_eq!(p.age, 30);
+    }
+
+    #[test]
+    fn test_trailing_comma() {
+        let p: Person = Person::from("Mike,32,");
+        assert_eq!(p.name, "John");
+        assert_eq!(p.age, 30);
+    }
+
+    #[test]
+    fn test_trailing_comma_and_some_string() {
+        let p: Person = Person::from("Mike,32,man");
         assert_eq!(p.name, "John");
         assert_eq!(p.age, 30);
     }

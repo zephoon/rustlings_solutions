@@ -3,8 +3,9 @@
 // instead of the target type itself.
 // You can read more about it at https://doc.rust-lang.org/std/convert/trait.TryFrom.html
 use std::convert::{TryFrom, TryInto};
+use std::error;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct Color {
     red: u8,
     green: u8,
@@ -15,69 +16,71 @@ struct Color {
 
 // Your task is to complete this implementation
 // and return an Ok result of inner type Color.
-// You need create implementation for a tuple of three integer,
-// an array of three integer and slice of integer.
+// You need to create an implementation for a tuple of three integers,
+// an array of three integers and a slice of integers.
 //
-// Note, that implementation for tuple and array will be checked at compile-time,
-// but slice implementation need check slice length!
-// Also note, that chunk of correct rgb color must be integer in range 0..=255.
+// Note that the implementation for tuple and array will be checked at compile time,
+// but the slice implementation needs to check the slice length!
+// Also note that correct RGB color values must be integers in the 0..=255 range.
 
 // Tuple implementation
 impl TryFrom<(i16, i16, i16)> for Color {
-    type Error = String;
+    type Error = Box<dyn error::Error>;
     fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
-        // Ok(Color{
-        //     red: u8::try_from(tuple.0).unwrap(),
-        //     green: u8::try_from(tuple.1).unwrap(),
-        //     blue: u8::try_from(tuple.2).unwrap(),
-        // })
+        let rgb_range = 0..255;
         match tuple {
-            (r, g, b) if r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 => {
-                Err(String::from("rgb must be 0~255"))
-            },
-            (red, green, blue) => {
-                Ok(Color{
-                    red: red as u8,
-                    green: green as u8,
-                    blue: blue as u8,
+            (r, g, b) if rgb_range.contains(&r) && rgb_range.contains(&g) && rgb_range.contains(&b) => {
+                Ok(Color {
+                    red: r as u8,
+                    green: g as u8,
+                    blue: b as u8,
                 })
-            }
+            },
+            _ => Err("RGB range must be 0 to 255".into()),
         }
     }
 }
 
 // Array implementation
 impl TryFrom<[i16; 3]> for Color {
-    type Error = String;
+    type Error = Box<dyn error::Error>;
     fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
-        // if arr.len() != 3 {
-        //     panic!()
-        // }
-        // Ok(Color{
-        //     red: u8::try_from(arr[0]).unwrap(),
-        //     green: u8::try_from(arr[1]).unwrap(),
-        //     blue: u8::try_from(arr[2]).unwrap(),
-        // })
-        arr[..].try_into()
+        let rgb_range = 0..255;
+        match arr {
+            [r, g, b]
+                if rgb_range.contains(&r) && rgb_range.contains(&b) && rgb_range.contains(&g) =>
+            {
+                Ok(Color {
+                    red: r as u8,
+                    blue: b as u8,
+                    green: g as u8,
+                })
+            }
+            _ => Err("RGB range must be 0 to 255".into()),
+        }
     }
 }
 
 // Slice implementation
 impl TryFrom<&[i16]> for Color {
-    type Error = String;
+    type Error = Box<dyn error::Error>;
     fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
-        // if slice.len() != 3 {
-        //     panic!()
-        // }
-        // Ok(Color{
-        //     red: u8::try_from(slice[0]).unwrap(),
-        //     green: u8::try_from(slice[1]).unwrap(),
-        //     blue: u8::try_from(slice[2]).unwrap(),
-        // })
         if slice.len() != 3 {
-            return Err(String::from("slice must has 3 numbers for rgb"));
+            return Err("Slice must be exactly 3 values".into());
         }
-        (slice[0], slice[1], slice[2]).try_into()
+        let rgb_range = 0..255;
+        match slice {
+            [r, g, b]
+                if rgb_range.contains(r) && rgb_range.contains(b) && rgb_range.contains(g) =>
+            {
+                Ok(Color {
+                    red: *r as u8,
+                    blue: *b as u8,
+                    green: *g as u8,
+                })
+            }
+            _ => Err("RGB range must be 0 to 255".into()),
+        }
     }
 }
 
@@ -104,71 +107,95 @@ mod tests {
     use super::*;
 
     #[test]
-    #[should_panic]
     fn test_tuple_out_of_range_positive() {
-        let _ = Color::try_from((256, 1000, 10000)).unwrap();
+        assert!(Color::try_from((256, 1000, 10000)).is_err());
     }
     #[test]
-    #[should_panic]
     fn test_tuple_out_of_range_negative() {
-        let _ = Color::try_from((-1, -10, -256)).unwrap();
+        assert!(Color::try_from((-1, -10, -256)).is_err());
+    }
+    #[test]
+    fn test_tuple_sum() {
+        assert!(Color::try_from((-1, 255, 255)).is_err());
     }
     #[test]
     fn test_tuple_correct() {
-        let c: Color = (183, 65, 14).try_into().unwrap();
-        assert_eq!(c.red, 183);
-        assert_eq!(c.green, 65);
-        assert_eq!(c.blue, 14);
+        let c: Result<Color, _> = (183, 65, 14).try_into();
+        assert!(c.is_ok());
+        assert_eq!(
+            c.unwrap(),
+            Color {
+                red: 183,
+                green: 65,
+                blue: 14
+            }
+        );
     }
-
     #[test]
-    #[should_panic]
     fn test_array_out_of_range_positive() {
-        let _: Color = [1000, 10000, 256].try_into().unwrap();
+        let c: Result<Color, _> = [1000, 10000, 256].try_into();
+        assert!(c.is_err());
     }
     #[test]
-    #[should_panic]
     fn test_array_out_of_range_negative() {
-        let _: Color = [-10, -256, -1].try_into().unwrap();
+        let c: Result<Color, _> = [-10, -256, -1].try_into();
+        assert!(c.is_err());
+    }
+    #[test]
+    fn test_array_sum() {
+        let c: Result<Color, _> = [-1, 255, 255].try_into();
+        assert!(c.is_err());
     }
     #[test]
     fn test_array_correct() {
-        let c: Color = [183, 65, 14].try_into().unwrap();
-        assert_eq!(c.red, 183);
-        assert_eq!(c.green, 65);
-        assert_eq!(c.blue, 14);
+        let c: Result<Color, _> = [183, 65, 14].try_into();
+        assert!(c.is_ok());
+        assert_eq!(
+            c.unwrap(),
+            Color {
+                red: 183,
+                green: 65,
+                blue: 14
+            }
+        );
     }
-
     #[test]
-    #[should_panic]
     fn test_slice_out_of_range_positive() {
         let arr = [10000, 256, 1000];
-        let _ = Color::try_from(&arr[..]).unwrap();
+        assert!(Color::try_from(&arr[..]).is_err());
     }
     #[test]
-    #[should_panic]
     fn test_slice_out_of_range_negative() {
         let arr = [-256, -1, -10];
-        let _ = Color::try_from(&arr[..]).unwrap();
+        assert!(Color::try_from(&arr[..]).is_err());
+    }
+    #[test]
+    fn test_slice_sum() {
+        let arr = [-1, 255, 255];
+        assert!(Color::try_from(&arr[..]).is_err());
     }
     #[test]
     fn test_slice_correct() {
         let v = vec![183, 65, 14];
-        let c = Color::try_from(&v[..]).unwrap();
-        assert_eq!(c.red, 183);
-        assert_eq!(c.green, 65);
-        assert_eq!(c.blue, 14);
+        let c: Result<Color, _> = Color::try_from(&v[..]);
+        assert!(c.is_ok());
+        assert_eq!(
+            c.unwrap(),
+            Color {
+                red: 183,
+                green: 65,
+                blue: 14
+            }
+        );
     }
     #[test]
-    #[should_panic]
     fn test_slice_excess_length() {
         let v = vec![0, 0, 0, 0];
-        let _ = Color::try_from(&v[..]).unwrap();
+        assert!(Color::try_from(&v[..]).is_err());
     }
     #[test]
-    #[should_panic]
     fn test_slice_insufficient_length() {
         let v = vec![0, 0];
-        let _ = Color::try_from(&v[..]).unwrap();
+        assert!(Color::try_from(&v[..]).is_err());
     }
 }
