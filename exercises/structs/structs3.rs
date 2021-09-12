@@ -1,8 +1,7 @@
 // structs3.rs
-// Structs contain data, but can also have logic. In this exercise we have
-// defined the Package struct and we want to test some logic attached to it.
-// Make the code compile and the tests pass!
-// If you have issues execute `rustlings hint structs3`
+// Structs contain more than simply some data, they can also have logic, in this
+// exercise we have defined the Package struct and we want to test some logic attached to it,
+// make the code compile and the tests pass! If you have issues execute `rustlings hint structs3`
 
 // I AM NOT DONE
 
@@ -29,12 +28,12 @@ impl Package {
 
     fn is_international(&self) -> bool {
         // Something goes here...
-        return self.recipient_country != self.sender_country;
+        self.sender_country != self.recipient_country
     }
 
     fn get_fees(&self, cents_per_gram: i32) -> i32 {
-        // Something goes here...
-        return self.weight_in_grams * cents_per_gram;
+        // Something goes here... 
+        self.weight_in_grams * cents_per_gram
     }
 }
 
@@ -59,16 +58,6 @@ mod tests {
         let package = Package::new(sender_country, recipient_country, 1200);
 
         assert!(package.is_international());
-    }
-
-    #[test]
-    fn create_local_package() {
-        let sender_country = String::from("Canada");
-        let recipient_country = sender_country.clone();
-
-        let package = Package::new(sender_country, recipient_country, 1200);
-
-        assert!(!package.is_international());
     }
 
     #[test]

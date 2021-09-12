@@ -4,10 +4,10 @@
 // I AM NOT DONE
 
 fn main() {
-    call_me(5);
+    call_me(32);
 }
 
-fn call_me(num: u32) {
+fn call_me(num: i32) {
     for i in 0..num {
         println!("Ring! Call number {}", i + 1);
     }
