@@ -2,7 +2,6 @@
 // Additionally, upon implementing FromStr, you can use the `parse` method
 // on strings to generate an object of the implementor type.
 // You can read more about it at https://doc.rust-lang.org/std/str/trait.FromStr.html
-use std::error;
 use std::str::FromStr;
 
 #[derive(Debug)]
@@ -12,39 +11,37 @@ struct Person {
 }
 
 // I AM NOT DONE
-
 // Steps:
-// 1. If the length of the provided string is 0, an error should be returned
+// 1. If the length of the provided string is 0, then return an error
 // 2. Split the given string on the commas present in it
-// 3. Only 2 elements should be returned from the split, otherwise return an error
-// 4. Extract the first element from the split operation and use it as the name
+// 3. Extract the first element from the split operation and use it as the name
+// 4. If the name is empty, then return an error
 // 5. Extract the other element from the split operation and parse it into a `usize` as the age
-//    with something like `"4".parse::<usize>()`
-// 6. If while extracting the name and the age something goes wrong, an error should be returned
-// If everything goes well, then return a Result of a Person object
-
+//    with something like `"4".parse::<usize>()`.
+// If while parsing the age, something goes wrong, then return an error
+// Otherwise, then return a Result of a Person object
 impl FromStr for Person {
-    type Err = Box<dyn error::Error>;
+    type Err = String;
     fn from_str(s: &str) -> Result<Person, Self::Err> {
         if s.len() == 0 {
-            return Err("empty".into());
+            return Err(String::from("empty string"));
         }
-        let parts: Vec<&str> = s.split(",").collect();
-        match parts[..] {
-            [name, age] => {
-                if name.is_empty() {
-                    return Err("empty name".into());
-                }
-                if let Ok(age) = age.parse::<usize>() {
-                    return Ok(Person {
-                        name: name.to_string(),
+        let parts: Vec<&str> = s.split(',').collect();
+        if let Ok(age) = parts[1].parse::<usize>() {
+            if let Ok(name) = parts[0].parse::<String>() {
+                if name.len() != 0 {
+                    return Ok(Person{
+                        name: name,
                         age: age,
-                    });
+                    })
                 }else{
-                    return Err("empty".into());
+                    return Err(String::from("zero size name is invalid"))
                 }
-            },
-            _ => {return Err("wrong".into());},
+            }else{
+                return Err(String::from("unable to parse name"))
+            }
+        }else{
+            return Err(String::from("invalid age"))
         }
     }
 }
@@ -71,42 +68,38 @@ mod tests {
         assert_eq!(p.age, 32);
     }
     #[test]
+    #[should_panic]
     fn missing_age() {
-        assert!("John,".parse::<Person>().is_err());
+        "John,".parse::<Person>().unwrap();
     }
 
     #[test]
+    #[should_panic]
     fn invalid_age() {
-        assert!("John,twenty".parse::<Person>().is_err());
+        "John,twenty".parse::<Person>().unwrap();
     }
 
     #[test]
+    #[should_panic]
     fn missing_comma_and_age() {
-        assert!("John".parse::<Person>().is_err());
+        "John".parse::<Person>().unwrap();
     }
 
     #[test]
+    #[should_panic]
     fn missing_name() {
-        assert!(",1".parse::<Person>().is_err());
+        ",1".parse::<Person>().unwrap();
     }
 
     #[test]
+    #[should_panic]
     fn missing_name_and_age() {
-        assert!(",".parse::<Person>().is_err());
+        ",".parse::<Person>().unwrap();
     }
 
     #[test]
+    #[should_panic]
     fn missing_name_and_invalid_age() {
-        assert!(",one".parse::<Person>().is_err());
-    }
-
-    #[test]
-    fn trailing_comma() {
-        assert!("John,32,".parse::<Person>().is_err());
-    }
-
-    #[test]
-    fn trailing_comma_and_some_string() {
-        assert!("John,32,man".parse::<Person>().is_err());
+        ",one".parse::<Person>().unwrap();
     }
 }

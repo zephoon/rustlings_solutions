@@ -1,2 +1,2 @@
-### Learn about the rust with [rustlings](https://github.com/rust-lang/rustlings). 
+### Learn about the rust with rustlings. 
 ### Thanks very much for this project!!!

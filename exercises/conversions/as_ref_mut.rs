@@ -20,6 +20,7 @@ fn main() {
     let s = "Café au lait";
     println!("{}", char_counter(s));
     println!("{}", byte_counter(s));
+    
 }
 
 #[cfg(test)]

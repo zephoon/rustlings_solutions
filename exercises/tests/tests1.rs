@@ -7,19 +7,11 @@
 // pass! Make the test fail! Execute `rustlings hint tests1` for hints :)
 
 // I AM NOT DONE
-fn my_function(v: i32) -> bool {
-    if v == 3 {
-        return true;
-    }else{
-        return false;
-    }
-}
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     #[test]
     fn you_can_assert() {
-        assert!(my_function(3));
+        assert!(true);
     }
 }

@@ -24,6 +24,8 @@ pub enum List {
     Nil,
 }
 
+use List::{Cons, Nil};
+
 fn main() {
     println!("This is an empty cons list: {:?}", create_empty_list());
     println!(
@@ -33,11 +35,11 @@ fn main() {
 }
 
 pub fn create_empty_list() -> List {
-    List::Nil
+    Nil
 }
 
 pub fn create_non_empty_list() -> List {
-    List::Cons(2, Box::new(List::Nil))
+    Cons(2, Box::from(Nil))
 }
 
 #[cfg(test)]
