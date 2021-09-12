@@ -28,3 +28,6 @@ fn main() {
     string("Happy Monday!".to_string().replace("Mon", "Tues"));
     string("mY sHiFt KeY iS sTiCkY".to_lowercase());
 }
+
+
+# test 09121859
